@@ -1,0 +1,14 @@
+Build:Feb  7 2021
+rst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x1058
+load:0x403cc710,len:0x8a8
+load:0x403ce710,len:0x2fac
+entry 0x403cc710
+Interface						MAC address (6 bytes, 4 universally administered, default)
+Wi-Fi Station (using 'esp_efuse_mac_get_default')	68:67:25:08:E4:BC
+WiFi Station (using 'esp_read_mac')			68:67:25:08:E4:BC
+WiFi Soft-AP (using 'esp_read_mac')			68:67:25:08:E4:BD
+Bluetooth (using 'esp_read_mac')			68:67:25:08:E4:BE
+Ethernet (using 'esp_read_mac')				68:67:25:08:E4:BF
