@@ -9,12 +9,16 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,19 +28,21 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothLeScanner bluetoothLeScanner;
     private List<String> deviceList = new ArrayList<>();
     private BleDeviceAdapter adapter;
+    private ListView listView;
+    private Button scanButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        RecyclerView recyclerView = findViewById(R.id.recycler_view);
-        Button scanButton = findViewById(R.id.scan_button);
+        // Find the ListView and Scan Button in the layout
+        this.listView = findViewById(R.id.list_view);
+        this.scanButton = findViewById(R.id.scan_button);
 
-        // Set up RecyclerView
-        adapter = new BleDeviceAdapter(deviceList);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(adapter);
+        // Set up BleDeviceAdapter for ListView
+        adapter = new BleDeviceAdapter(this, deviceList);
+        listView.setAdapter(adapter);
 
         // Initialize Bluetooth
         BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
@@ -50,12 +56,22 @@ public class MainActivity extends AppCompatActivity {
 
         // Set up scan button
         scanButton.setOnClickListener(v -> startScanning());
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                String selectedItem = (String) adapterView.getItemAtPosition(i);
+                Toast.makeText(MainActivity.this,"You selected "+selectedItem, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
+    @SuppressLint("MissingPermission")
     private void startScanning() {
-        deviceList.clear();
-        adapter.notifyDataSetChanged();
-        bluetoothLeScanner.startScan(scanCallback);
+        deviceList.clear();  // Clear the device list before starting the scan
+        adapter.notifyDataSetChanged();  // Notify the adapter that the data has changed
+        bluetoothLeScanner.startScan(scanCallback);  // Start scanning for Bluetooth devices
     }
 
     private final ScanCallback scanCallback = new ScanCallback() {
@@ -64,8 +80,8 @@ public class MainActivity extends AppCompatActivity {
             super.onScanResult(callbackType, result);
             String deviceName = result.getDevice().getName();
             if (deviceName != null && !deviceList.contains(deviceName)) {
-                deviceList.add(deviceName);
-                adapter.notifyItemInserted(deviceList.size() - 1);
+                deviceList.add(deviceName);  // Add the new device to the list
+                adapter.notifyDataSetChanged();  // Notify the adapter that the data has changed
             }
         }
 
@@ -75,24 +91,25 @@ public class MainActivity extends AppCompatActivity {
             for (ScanResult result : results) {
                 String deviceName = result.getDevice().getName();
                 if (deviceName != null && !deviceList.contains(deviceName)) {
-                    deviceList.add(deviceName);
-                    adapter.notifyItemInserted(deviceList.size() - 1);
+                    deviceList.add(deviceName);  // Add the new device to the list
                 }
             }
+            adapter.notifyDataSetChanged();  // Notify the adapter after all devices are added
         }
+
+
 
         @Override
         public void onScanFailed(int errorCode) {
             super.onScanFailed(errorCode);
-            // Handle scan failure
+            // Handle scan failure (you could show an error message here)
         }
     };
-
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        bluetoothLeScanner.stopScan(scanCallback);
+        bluetoothLeScanner.stopScan(scanCallback);  // Stop scanning when the activity is destroyed
     }
 
     @Override
@@ -100,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_LOCATION_PERMISSION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startScanning();
+                startScanning();  // Start scanning if permission is granted
             }
         }
     }
